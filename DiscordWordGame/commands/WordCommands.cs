@@ -19,22 +19,6 @@ namespace DiscordWordGame.commands
                 return;
             }
 
-            Random r = new();
-
-            string firstWord;
-            do
-            {
-                firstWord = WordManager.Words[r.Next(WordManager.Words.Count)];
-            } while (firstWord[^1] == 'ğ');
-
-            WordManager.PlayingWords.Add(
-                new models.PlayingWord
-                {
-                    Word = firstWord,
-                    ServerId = serverId,
-                    PlayingDate = DateTime.Now,
-                });
-
             var dataRoom = await PlayingRoomManager.AddRoom(new PlayingChannelsDataModel
             {
                 ServerId = serverId,
@@ -65,6 +49,23 @@ namespace DiscordWordGame.commands
                     ServerId = serverId,
                     PlayTotalWord = playTotalWord
                 });
+
+                Random r = new();
+
+                string firstWord;
+                do
+                {
+                    firstWord = WordManager.Words[r.Next(WordManager.Words.Count)];
+                } while (firstWord[^1] == 'ğ');
+
+                WordManager.PlayingWords.Add(
+                    new models.PlayingWord
+                    {
+                        Word = firstWord,
+                        ServerId = serverId,
+                        PlayingDate = DateTime.Now,
+                    });
+
                 await commandContext.Client.SendMessageAsync(commandContext.Channel, $"Kelime oyunu yeni başlamıştır ilk kelime: {firstWord}");
             }
         }

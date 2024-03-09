@@ -249,7 +249,7 @@ namespace CvProjectUI
             var embedBuilder = new DiscordEmbedBuilder();
 
             embedBuilder.WithColor(DiscordColor.Azure);
-            embedBuilder.WithTitle("Bu Sunucuda En Çok Puana Sahip 10 Kişi");
+            embedBuilder.WithTitle($"{args.Guild.Name} Sunucusunda En Çok Puana Sahip 10 Kişi");
 
             var stringBuilder = new StringBuilder();
             int queue = 1;
@@ -257,7 +257,7 @@ namespace CvProjectUI
             {
                 var user = await Client.GetUserAsync(item.PlayerId);
 
-                stringBuilder.AppendLine($"{queue}. Kullanıcı: {user.Username}\n Puan: {item.Point} Toplam Kelime Sayısı: {item.WordCount}");
+                stringBuilder.AppendLine($"{queue}. - Kullanıcı: {user.Username}\n Puan: {item.Point} Toplam Kelime Sayısı: {item.WordCount}");
 
                 queue++;
             }
@@ -275,7 +275,7 @@ namespace CvProjectUI
             do
             {
                 firstWord = WordManager.Words[r.Next(WordManager.Words.Count)];
-            } while (firstWord[firstWord.Length - 1] == 'ğ');
+            } while (firstWord[^1] == 'ğ' || WordManager.PlayingWords.Any(x => x.Word == firstWord));
 
             WordManager.PlayingWords.Add(
                 new PlayingWord
