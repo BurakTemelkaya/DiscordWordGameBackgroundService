@@ -75,7 +75,7 @@ namespace CvProjectUI
                     ServerId = x.ServerId,
                 });
 
-                string firstWord = AddRandomWord(x.ServerId);
+                string firstWord = WordManager.AddRandomWord(x.ServerId);
 
                 //var discordChannel = await sender.GetChannelAsync(x.ChannelId);
 
@@ -167,7 +167,7 @@ namespace CvProjectUI
 
                         if (lastWord[lastWord.Length - 1] == 'ğ')
                         {
-                            lastWord = AddRandomWord(serverId);
+                            lastWord = WordManager.AddRandomWord(serverId);
 
                             await args.Message.Channel.SendMessageAsync(lastWord);
                         }
@@ -230,7 +230,7 @@ namespace CvProjectUI
             WordManager.PlayingWords.RemoveAll(x => x.ServerId == serverId);
             PlayerUsers.RemoveAll(x => x.ServerId == serverId);
 
-            string firstWord = AddRandomWord(serverId);
+            string firstWord = WordManager.AddRandomWord(serverId);
 
             await args.Channel.SendMessageAsync($"Kelime oyunu sıfırlanmıştır ilk kelime {firstWord}");
         }
@@ -248,7 +248,7 @@ namespace CvProjectUI
 
             var embedBuilder = new DiscordEmbedBuilder();
 
-            embedBuilder.WithColor(DiscordColor.Azure);
+            embedBuilder.WithColor(DiscordColor.Cyan);
             embedBuilder.WithTitle($"{args.Guild.Name} Sunucusunda En Çok Puana Sahip 10 Kişi");
 
             var stringBuilder = new StringBuilder();
@@ -256,8 +256,22 @@ namespace CvProjectUI
             foreach (var item in data)
             {
                 var user = await Client.GetUserAsync(item.PlayerId);
+                DiscordEmoji? emote = queue switch
+                {
+                    1 => DiscordEmoji.FromName(Client, ":first_place:"),
+                    2 => DiscordEmoji.FromName(Client, ":second_place:"),
+                    3 => DiscordEmoji.FromName(Client, ":third_place:"),
+                    4 => DiscordEmoji.FromName(Client, ":four:"),
+                    5 => DiscordEmoji.FromName(Client, ":five:"),
+                    6 => DiscordEmoji.FromName(Client, ":six:"),
+                    7 => DiscordEmoji.FromName(Client, ":seven:"),
+                    8 => DiscordEmoji.FromName(Client, ":eight:"),
+                    9 => DiscordEmoji.FromName(Client, ":nine:"),
+                    10 => DiscordEmoji.FromName(Client, ":keycap_ten:"),
+                    _ => null,
+                };
 
-                stringBuilder.AppendLine($"{queue}. - Kullanıcı: {user.Username}\n Puan: {item.Point} Toplam Kelime Sayısı: {item.WordCount}");
+                stringBuilder.AppendLine($"{emote} - Kullanıcı: {user.Username}\n Puan: {item.Point} Toplam Kelime Sayısı: {item.WordCount}");
 
                 queue++;
             }
@@ -265,27 +279,6 @@ namespace CvProjectUI
             embedBuilder.WithDescription(stringBuilder.ToString());
 
             await args.Channel.SendMessageAsync(embed: embedBuilder);
-        }
-
-        private string AddRandomWord(ulong serverId)
-        {
-            Random r = new();
-
-            string firstWord;
-            do
-            {
-                firstWord = WordManager.Words[r.Next(WordManager.Words.Count)];
-            } while (firstWord[^1] == 'ğ' || WordManager.PlayingWords.Any(x => x.Word == firstWord));
-
-            WordManager.PlayingWords.Add(
-                new PlayingWord
-                {
-                    Word = firstWord,
-                    ServerId = serverId,
-                    PlayingDate = DateTime.Now,
-                });
-
-            return firstWord;
         }
     }
 }

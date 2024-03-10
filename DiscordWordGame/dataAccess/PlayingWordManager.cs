@@ -43,7 +43,10 @@ namespace DiscordWordGame.dataAccess
 
             using Context context = new();
 
-            var lastPlays = await context.PlayerPoints.Where(x => x.ServerId == serverId).AsNoTracking().ToListAsync();
+            var lastPlays = await context.PlayerPoints
+                .Where(x => x.ServerId == serverId)
+                .AsNoTracking()
+                .ToListAsync();
 
             var updatedData = new List<PlayerPointDataModel>();
 
@@ -101,7 +104,11 @@ namespace DiscordWordGame.dataAccess
         {
             using Context context = new();
 
-            var data = await context.PlayerPoints.Where(x => x.ServerId == serverId).OrderByDescending(x => x.Point).Take(10).ToListAsync();
+            var data = await context.PlayerPoints
+                .Where(x => x.ServerId == serverId)
+                .OrderByDescending(x => x.Point)
+                .Take(10)
+                .ToListAsync();
 
             return data;
         }
