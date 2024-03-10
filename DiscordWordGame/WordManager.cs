@@ -30,7 +30,7 @@ namespace DiscordWordGame
             do
             {
                 firstWord = Words[r.Next(Words.Count)];
-            } while (firstWord[^1] == 'ğ' || PlayingWords.Any(x => x.Word == firstWord));
+            } while (firstWord[^1] == 'ğ' || PlayingWords.Any(x=> x.ServerId== serverId && x.Word == firstWord));
 
             PlayingWords.Add(
                 new PlayingWord
