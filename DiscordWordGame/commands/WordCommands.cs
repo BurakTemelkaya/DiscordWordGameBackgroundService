@@ -7,6 +7,12 @@ namespace DiscordWordGame.commands
 {
     public class WordCommands : BaseCommandModule
     {
+        /// <summary>
+        /// Deprecated Currently using Slash Commands
+        /// </summary>
+        /// <param name="commandContext"></param>
+        /// <param name="playTotalWord"></param>
+        /// <returns></returns>
         [Command("Start")]
         public async Task Add(CommandContext commandContext, int playTotalWord = 100)
         {

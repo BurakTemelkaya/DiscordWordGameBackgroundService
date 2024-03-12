@@ -9,6 +9,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using System.Text;
 using DiscordWordGame.commands;
+using DSharpPlus.SlashCommands;
 
 namespace CvProjectUI
 {
@@ -49,9 +50,13 @@ namespace CvProjectUI
                 EnableDefaultHelp = true,
             };
 
-            Commands = Client.UseCommandsNext(commandConfig);
+            //Commands = Client.UseCommandsNext(commandConfig);
 
-            Commands.RegisterCommands<WordCommands>();
+            //Commands.RegisterCommands<WordCommands>();
+
+            var slashCommand = Client.UseSlashCommands();
+
+            slashCommand.RegisterCommands<WordSlashCommands>();
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
@@ -99,12 +104,16 @@ namespace CvProjectUI
             {
                 return;
             }
+            else if (args.Message.Content[^1] == '!')
+            {
+                return;
+            }
             else if (lastUser != null && lastUser.PlayerId == args.Message.Author.Id)
             {
                 await ReactDeniedMessageAsync(args);
                 await args.Message.RespondAsync($"Bir kullanıcı arka arkaya 2 kez oynayamaz.");
                 return;
-            }
+            }           
 
             if (await AddWord(args.Message.Content, args))
             {
@@ -132,7 +141,7 @@ namespace CvProjectUI
             else
             {
                 var lastWord = WordManager.PlayingWords.Last(x => x.ServerId == serverId).Word;
-                if (word[0] != lastWord[lastWord.Length - 1])
+                if (word[0] != lastWord[^1])
                 {
                     await args.Message.RespondAsync($"Lütfen {lastWord[lastWord.Length - 1]} harfi ile başlayan bir kelime yazınız. Son kelime {lastWord}");
                     await ReactDeniedMessageAsync(args);
@@ -249,7 +258,7 @@ namespace CvProjectUI
             var embedBuilder = new DiscordEmbedBuilder();
 
             embedBuilder.WithColor(DiscordColor.Cyan);
-            embedBuilder.WithTitle($"{args.Guild.Name} Sunucusunda En Çok Puana Sahip 10 Kişi");
+            embedBuilder.WithTitle($"# {args.Guild.Name} Sunucusunda En Çok Puana Sahip 10 Kişi");
 
             var stringBuilder = new StringBuilder();
             int queue = 1;
@@ -271,7 +280,7 @@ namespace CvProjectUI
                     _ => null,
                 };
 
-                stringBuilder.AppendLine($"{emote} - Kullanıcı: {user.Username}\n Puan: {item.Point} Toplam Kelime Sayısı: {item.WordCount}");
+                stringBuilder.AppendLine($"{emote} - Kullanıcı: **{user.Username}** \n Puan: **{item.Point}** Toplam Kelime Sayısı: **{item.WordCount}** \n");
 
                 queue++;
             }
