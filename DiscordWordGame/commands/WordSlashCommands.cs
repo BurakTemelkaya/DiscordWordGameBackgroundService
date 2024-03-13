@@ -74,7 +74,12 @@ namespace DiscordWordGame.commands
                         stringBuilder.Append('\n');
                     }
 
-                    stringBuilder.Append($"Kelime oyunu tur başına kelime sayısı {playTotalWord} olarak güncellenmiştir.");
+                    stringBuilder.Append($"Kelime oyunu tur başına kelime sayısı **{playTotalWord}** olarak güncellenmiştir.");
+                }
+
+                if (stringBuilder.Length == 0)
+                {
+                    stringBuilder.Append($"Hiçbir değişiklik yapılmamıştır. Kelime sayısı **{playTotalWord}**");
                 }
 
                 await interactionContext.EditResponseAsync(
