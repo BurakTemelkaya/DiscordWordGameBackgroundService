@@ -50,10 +50,6 @@ namespace CvProjectUI
                 EnableDefaultHelp = true,
             };
 
-            //Commands = Client.UseCommandsNext(commandConfig);
-
-            //Commands.RegisterCommands<WordCommands>();
-
             var slashCommand = Client.UseSlashCommands();
 
             slashCommand.RegisterCommands<WordSlashCommands>();
@@ -101,10 +97,6 @@ namespace CvProjectUI
                 return;
             }
             else if (!WordManager.PlayingChannels.Any(x => x.ServerId == serverId && x.ChannelId == args.Channel.Id))
-            {
-                return;
-            }
-            else if (args.Message.Content[^1] == '!')
             {
                 return;
             }

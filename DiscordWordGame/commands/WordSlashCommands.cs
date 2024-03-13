@@ -3,7 +3,6 @@ using DiscordWordGameDotNetCore.dataAccess;
 using DSharpPlus.SlashCommands;
 using DSharpPlus;
 using DSharpPlus.Entities;
-using System.Linq;
 using System.Text;
 
 namespace DiscordWordGame.commands
@@ -14,8 +13,6 @@ namespace DiscordWordGame.commands
         public async Task SlashCommandAdd(InteractionContext interactionContext, [Option("WordCount",
                                         "Tur başına kelime sayısı (10 ile 1000 arasında bir sayı giriniz.)")] long playTotalWord = 100)
         {
-            await interactionContext.DeferAsync();
-
             var desiredRoleId = interactionContext.Guild.Roles.FirstOrDefault(r => r.Value.Name == "kelime-oyunu-yönetici").Key;
 
             var isAdmin = interactionContext.Member.Roles.Any(r => r.Permissions.HasPermission(Permissions.Administrator));
