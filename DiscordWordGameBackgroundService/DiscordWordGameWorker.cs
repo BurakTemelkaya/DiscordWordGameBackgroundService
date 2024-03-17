@@ -76,8 +76,12 @@ namespace CvProjectUI
                     ServerId = x.ServerId,
                 });
 
-                string firstWord = WordManager.AddRandomWord(x.ServerId);
+                if (!WordManager.PlayingWords.Any(p => p.ServerId == x.ServerId))
+                {
+                    WordManager.AddRandomWord(x.ServerId);
+                }
 
+                //Currently this section has been removed because it gives an error when uploaded to hosting
                 //var discordChannel = await sender.GetChannelAsync(x.ChannelId);
 
                 //await sender.SendMessageAsync(discordChannel, $"Kelime oyunu yeni başlamıştır ilk kelime {firstWord} ");
@@ -105,7 +109,7 @@ namespace CvProjectUI
                 await ReactDeniedMessageAsync(args);
                 await args.Message.RespondAsync($"Bir kullanıcı arka arkaya 2 kez oynayamaz.");
                 return;
-            }           
+            }
 
             if (await AddWord(args.Message.Content, args))
             {

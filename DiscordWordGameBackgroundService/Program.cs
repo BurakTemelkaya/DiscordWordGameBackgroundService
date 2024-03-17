@@ -1,4 +1,5 @@
 using CvProjectUI;
+using Microsoft.Extensions.FileProviders;
 
 namespace DiscordWordGameBackgroundService
 {
@@ -22,8 +23,18 @@ namespace DiscordWordGameBackgroundService
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseWhen(context => context.Request.Path.StartsWithSegments("/DiscordWordGame"), builder =>
+            {
+                builder.Run(async context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status404NotFound;
+                    await context.Response.CompleteAsync();
+                });
+            });
+
             app.UseStaticFiles();
+
+            app.UseHttpsRedirection();
 
             app.UseRouting();
 

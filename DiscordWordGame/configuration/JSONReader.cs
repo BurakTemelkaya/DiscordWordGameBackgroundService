@@ -15,7 +15,7 @@ namespace DiscordWordGame.configuration
             using (StreamReader sr = new StreamReader(path))
             {
                 string json = await sr.ReadToEndAsync();
-                JSONStructure data = JsonConvert.DeserializeObject<JSONStructure>(json);
+                JSONStructure data = JsonConvert.DeserializeObject<JSONStructure>(json)!;
 
                 this.Token = data.Token;
                 this.Prefix = data.Prefix;
