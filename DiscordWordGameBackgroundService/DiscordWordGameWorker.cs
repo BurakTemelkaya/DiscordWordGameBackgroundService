@@ -111,6 +111,20 @@ namespace CvProjectUI
                 {
                     if (message.Reactions.Any(x => x.IsMe && x.Emoji == "✅"))
                     {
+                        lastUser = new()
+                        {
+                            PlayerId = message.Author.Id,
+                            PlayingDate = message.CreationTimestamp.Date,
+                            ServerId = serverId,
+                        };
+
+                        if (lastUser.PlayerId == args.Author.Id)
+                        {
+                            await ReactDeniedMessageAsync(args);
+                            await args.Message.RespondAsync("Bir kullanıcı arka arkaya 2 kez oynayamaz.");
+                            return;
+                        }
+
                         lastWord = message.Content;
                         WordManager.PlayingWords.Add(new PlayingWord
                         {
@@ -119,19 +133,6 @@ namespace CvProjectUI
                             ServerId = serverId,
                             Word = lastWord
                         });
-                        lastUser = new()
-                        {
-                            PlayerId = message.Author.Id,
-                            PlayingDate = message.CreationTimestamp.Date,
-                            ServerId = serverId,
-                        };
-
-                        if (lastUser.PlayerId == message.Author.Id)
-                        {
-                            await ReactDeniedMessageAsync(args);
-                            await args.Message.RespondAsync("Bir kullanıcı arka arkaya 2 kez oynayamaz.");
-                            return;
-                        }
                         break;
                     }
                 }
