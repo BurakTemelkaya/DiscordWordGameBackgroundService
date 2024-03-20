@@ -8,7 +8,7 @@ namespace DiscordWordGame
         public static List<PlayingChannel> PlayingChannels = new();
         public static List<PlayingWord> PlayingWords = new();
 
-        public static async Task AddWords()
+        public static async Task AddAllWords()
         {
             string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/DiscordWordGame/kelime-listesi.txt");
 

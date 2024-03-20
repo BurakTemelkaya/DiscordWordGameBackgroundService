@@ -10,6 +10,7 @@ using DSharpPlus.EventArgs;
 using System.Text;
 using DiscordWordGame.commands;
 using DSharpPlus.SlashCommands;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CvProjectUI
 {
@@ -55,19 +56,19 @@ namespace CvProjectUI
             slashCommand.RegisterCommands<WordSlashCommands>();
 
             await Client.ConnectAsync();
-            await Task.Delay(-1);
+            await Task.Delay(-1, stoppingToken);
         }
 
         private async Task Client_Ready(DiscordClient sender, ReadyEventArgs args)
         {
             if (WordManager.Words.Count == 0)
             {
-                await WordManager.AddWords();
+                await WordManager.AddAllWords();
             }
 
             var playingRooms = await PlayingRoomManager.GetChannelsAsync();
 
-            playingRooms.ForEach(async x =>
+            playingRooms.ForEach(x =>
             {
                 WordManager.PlayingChannels.Add(new PlayingChannel
                 {
@@ -75,16 +76,6 @@ namespace CvProjectUI
                     PlayTotalWord = x.PlayWordCount,
                     ServerId = x.ServerId,
                 });
-
-                if (!WordManager.PlayingWords.Any(p => p.ServerId == x.ServerId))
-                {
-                    WordManager.AddRandomWord(x.ServerId);
-                }
-
-                //Currently this section has been removed because it gives an error when uploaded to hosting
-                //var discordChannel = await sender.GetChannelAsync(x.ChannelId);
-
-                //await sender.SendMessageAsync(discordChannel, $"Kelime oyunu yeni başlamıştır ilk kelime {firstWord} ");
             });
 
             await Task.CompletedTask;
@@ -95,11 +86,11 @@ namespace CvProjectUI
             ulong serverId = args.Guild.Id;
             var lastUser = PlayerUsers.LastOrDefault(x => x.ServerId == serverId);
             //var mentionUser = sender.CurrentUser.Mention; kullanıcıyı etiketlemek için kullanılabilir.
-
             if (args.Message.Author.IsBot)
             {
                 return;
             }
+
             else if (!WordManager.PlayingChannels.Any(x => x.ServerId == serverId && x.ChannelId == args.Channel.Id))
             {
                 return;
@@ -107,8 +98,50 @@ namespace CvProjectUI
             else if (lastUser != null && lastUser.PlayerId == args.Message.Author.Id)
             {
                 await ReactDeniedMessageAsync(args);
-                await args.Message.RespondAsync($"Bir kullanıcı arka arkaya 2 kez oynayamaz.");
+                await args.Message.RespondAsync("Bir kullanıcı arka arkaya 2 kez oynayamaz.");
                 return;
+            }
+
+            if (!WordManager.PlayingWords.Any(p => p.ServerId == serverId))
+            {
+                var messages = await args.Channel.GetMessagesAsync();
+                string lastWord = string.Empty;
+
+                foreach (var message in messages)
+                {
+                    if (message.Reactions.Any(x => x.IsMe && x.Emoji == "✅"))
+                    {
+                        lastWord = message.Content;
+                        WordManager.PlayingWords.Add(new PlayingWord
+                        {
+                            PlayerId = message.Author.Id,
+                            PlayingDate = message.CreationTimestamp.Date,
+                            ServerId = serverId,
+                            Word = lastWord
+                        });
+                        lastUser = new()
+                        {
+                            PlayerId = message.Author.Id,
+                            PlayingDate = message.CreationTimestamp.Date,
+                            ServerId = serverId,
+                        };
+
+                        if (lastUser.PlayerId == message.Author.Id)
+                        {
+                            await ReactDeniedMessageAsync(args);
+                            await args.Message.RespondAsync("Bir kullanıcı arka arkaya 2 kez oynayamaz.");
+                            return;
+                        }
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(lastWord))
+                {
+                    string randomWord = WordManager.AddRandomWord(serverId);
+                    await args.Message.RespondAsync($"Son kelime bulunamadı rastgele yeni bir kelime oluşturuldu. Kelime: {randomWord}");
+                    return;
+                }
             }
 
             if (await AddWord(args.Message.Content, args))
