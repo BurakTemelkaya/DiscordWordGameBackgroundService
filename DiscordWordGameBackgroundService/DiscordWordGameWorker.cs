@@ -85,24 +85,15 @@ namespace CvProjectUI
         {
             ulong serverId = args.Guild.Id;
             var lastUser = PlayerUsers.LastOrDefault(x => x.ServerId == serverId);
-            //var mentionUser = sender.CurrentUser.Mention; kullanıcıyı etiketlemek için kullanılabilir.
             if (args.Message.Author.IsBot)
             {
                 return;
             }
-
-            else if (!WordManager.PlayingChannels.Any(x => x.ServerId == serverId && x.ChannelId == args.Channel.Id))
+            else if (args.Message.Content[0] == '-')
             {
                 return;
             }
-            else if (lastUser != null && lastUser.PlayerId == args.Message.Author.Id)
-            {
-                await ReactDeniedMessageAsync(args);
-                await args.Message.RespondAsync("Bir kullanıcı arka arkaya 2 kez oynayamaz.");
-                return;
-            }
-
-            if (!WordManager.PlayingWords.Any(p => p.ServerId == serverId))
+            else if (!WordManager.PlayingWords.Any(p => p.ServerId == serverId))
             {
                 var messages = await args.Channel.GetMessagesAsync();
                 string lastWord = string.Empty;
@@ -121,30 +112,41 @@ namespace CvProjectUI
                         lastWord = message.Content;
                         WordManager.PlayingWords.Add(new PlayingWord
                         {
-                            PlayerId = message.Author.Id,
+                            PlayerId = lastUser.PlayerId,
                             PlayingDate = message.CreationTimestamp.Date,
                             ServerId = serverId,
                             Word = lastWord
                         });
 
+                        PlayUser(lastUser.PlayerId, serverId);
+
                         if (lastUser.PlayerId == args.Author.Id)
                         {
                             await ReactDeniedMessageAsync(args);
-                            await args.Message.RespondAsync("Bir kullanıcı arka arkaya 2 kez oynayamaz.");
+                            await args.Message.RespondAsync($"Bir kullanıcı arka arkaya 2 kez oynayamaz {args.Author.Mention}");
                             return;
                         }
-                        
+
                         break;
                     }
                 }
-
                 if (string.IsNullOrEmpty(lastWord))
                 {
                     string randomWord = WordManager.AddRandomWord(serverId);
-                    await args.Message.RespondAsync($"Son kelime bulunamadı rastgele yeni bir kelime oluşturuldu. Kelime: {randomWord}");
+                    await args.Message.RespondAsync($"Son kelime bulunamadı rastgele yeni bir kelime oluşturuldu. Kelime: {randomWord} - {args.Author.Mention}");
                     return;
                 }
             }
+            else if (!WordManager.PlayingChannels.Any(x => x.ServerId == serverId && x.ChannelId == args.Channel.Id))
+            {
+                return;
+            }
+            else if (lastUser != null && lastUser.PlayerId == args.Message.Author.Id)
+            {
+                await ReactDeniedMessageAsync(args);
+                await args.Message.RespondAsync($"Bir kullanıcı arka arkaya 2 kez oynayamaz {args.Author.Mention}");
+                return;
+            }           
 
             if (await AddWord(args.Message.Content, args))
             {
@@ -165,7 +167,7 @@ namespace CvProjectUI
 
             if (word.Length < 2)
             {
-                await args.Message.RespondAsync($"Lütfen kelimeyi en az 2 harfli giriniz. @{user.Username}");
+                await args.Message.RespondAsync($"Lütfen kelimeyi en az 2 harfli giriniz. {args.Author.Mention}");
                 await ReactDeniedMessageAsync(args);
                 return false;
             }
@@ -180,7 +182,7 @@ namespace CvProjectUI
                 }
                 else if (WordManager.PlayingWords.Any(x => x.ServerId == serverId && x.Word == word))
                 {
-                    await args.Message.RespondAsync($"Bu kelime daha önce yazıldı. Son kelime {lastWord}");
+                    await args.Message.RespondAsync($"Bu kelime daha önce yazıldı. Son kelime: {lastWord} - {args.Author.Mention}");
 
                     await ReactDeniedMessageAsync(args);
 
@@ -225,7 +227,7 @@ namespace CvProjectUI
                 }
                 else
                 {
-                    await args.Message.RespondAsync($"Böyle bir kelime bulunmamaktadır. Son kelime {lastWord}");
+                    await args.Message.RespondAsync($"Böyle bir kelime bulunmamaktadır. Son kelime {lastWord} - {args.Author.Mention}");
                     await ReactDeniedMessageAsync(args);
                     return false;
                 }
