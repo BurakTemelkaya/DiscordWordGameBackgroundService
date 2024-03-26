@@ -10,15 +10,13 @@ using DSharpPlus.EventArgs;
 using System.Text;
 using DiscordWordGame.commands;
 using DSharpPlus.SlashCommands;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Globalization;
 
 namespace CvProjectUI
 {
     public class DiscordWordGameWorker : BackgroundService
     {
-        public DiscordClient Client { get; set; }
-
-        private CommandsNextExtension Commands { get; set; }
+        public required DiscordClient Client { get; set; }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -157,13 +155,13 @@ namespace CvProjectUI
         }
 
 
-        static List<PlayingUser> PlayerUsers = new List<PlayingUser>();
+        static List<PlayingUser> PlayerUsers = new();
 
         private async Task<bool> AddWord(string word, MessageCreateEventArgs args)
         {
             var user = args.Message.Author;
             ulong serverId = args.Guild.Id;
-            word = word.ToLower();
+            word = word.ToLower(new CultureInfo("tr-TR"));
 
             if (word.Length < 2)
             {
@@ -191,7 +189,7 @@ namespace CvProjectUI
                 }
                 else if (WordManager.Words.Any(x => x == word))
                 {
-                    if (word[0] == lastWord[lastWord.Length - 1])
+                    if (word[0] == lastWord[^1])
                     {
                         PlayingWord playingWord = new()
                         {
@@ -207,7 +205,7 @@ namespace CvProjectUI
 
                         await ReactApproveMessageAsync(args);
 
-                        if (lastWord[lastWord.Length - 1] == 'ğ')
+                        if (lastWord[^1] == 'ğ')
                         {
                             lastWord = WordManager.AddRandomWord(serverId);
 
@@ -235,7 +233,12 @@ namespace CvProjectUI
             return false;
         }
 
-        private void PlayUser(ulong userId, ulong serverId)
+        /// <summary>
+        /// Adds or updates the most recently played person on all servers. Only one person's data is kept for each server.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="serverId"></param>
+        private static void PlayUser(ulong userId, ulong serverId)
         {
             var lastUser = PlayerUsers.LastOrDefault(x => x.ServerId == serverId);
 
@@ -252,7 +255,6 @@ namespace CvProjectUI
                     PlayingDate = DateTime.Now,
                 });
             }
-
         }
 
         private async Task ReactApproveMessageAsync(MessageCreateEventArgs args)
@@ -267,7 +269,13 @@ namespace CvProjectUI
             await args.Message.CreateReactionAsync(emote);
         }
 
-        private async Task RestartGame(ulong serverId, MessageCreateEventArgs args)
+        /// <summary>
+        /// Tour finishing.
+        /// </summary>
+        /// <param name="serverId"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        private static async Task RestartGame(ulong serverId, MessageCreateEventArgs args)
         {
             WordManager.PlayingWords.RemoveAll(x => x.ServerId == serverId);
             PlayerUsers.RemoveAll(x => x.ServerId == serverId);
@@ -277,11 +285,17 @@ namespace CvProjectUI
             await args.Channel.SendMessageAsync($"Kelime oyunu sıfırlanmıştır ilk kelime {firstWord}");
         }
 
-        private async Task CalculateGamePoints(ulong serverId)
+        private static async Task CalculateGamePoints(ulong serverId)
         {
             await PlayingWordManager.AddAsync(WordManager.PlayingWords, serverId);
         }
 
+        /// <summary>
+        /// At the end of the round, the screen displays the names of the 10 people with the most points, their score and the number of words they have played.
+        /// </summary>
+        /// <param name="serverId"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
         private async Task WritePoints(ulong serverId, MessageCreateEventArgs args)
         {
             await CalculateGamePoints(serverId);
