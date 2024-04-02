@@ -90,6 +90,10 @@ namespace CvProjectUI
             else if (args.Message.Content[0] == '-')
             {
                 return;
+            }           
+            else if (!WordManager.PlayingChannels.Any(x => x.ServerId == serverId && x.ChannelId == args.Channel.Id))
+            {
+                return;
             }
             else if (!WordManager.PlayingWords.Any(p => p.ServerId == serverId))
             {
@@ -134,10 +138,6 @@ namespace CvProjectUI
                     await args.Message.RespondAsync($"Son kelime bulunamadı rastgele yeni bir kelime oluşturuldu. Kelime: {randomWord} - {args.Author.Mention}");
                     return;
                 }
-            }
-            else if (!WordManager.PlayingChannels.Any(x => x.ServerId == serverId && x.ChannelId == args.Channel.Id))
-            {
-                return;
             }
             else if (lastUser != null && lastUser.PlayerId == args.Message.Author.Id)
             {
